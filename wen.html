@@ -1,0 +1,172 @@
+<!doctype html> 
+<html> 
+<head> 
+    <meta charset="utf-8"> 
+    <title></title> 
+    <style type="text/css">
+*{margin: 0;padding: 0;list-style: none;}
+#Wztext{width: 100vw;height: 100vh;position: absolute;left: 0;top: 0;background: #ccc;text-align: center;display: none;}
+#ul>li{cursor: pointer;transition: .3s}
+#ul>li:hover{color: red;}
+#gbbtn{position: absolute;right: 20px;top: 20px;display: none;}
+#titName{
+	width: 300px;
+	height: 20px;
+	border: 1px solid #0A0A0A;
+}
+#setText{
+	position: absolute;
+	left: 50%;
+	bottom: 60%;
+}
+		#txt{
+			width: 270px;
+			height: 20px;
+			float: left;
+			border: 1px solid #0A0A0A;
+		}
+		#iase{
+			float: left;
+		}
+    </style>
+</head>
+<body>
+<div id='setText'>
+	user:<input type='text' id='titName'><br>
+	<p id="iase">message</p>
+	<textarea id='txt'></textarea><br>
+	<button id='btn'>提交</button>
+</div>
+<div id='Wztext'></div>
+<ul id='ul'></ul>
+<button id='gbbtn'>关闭</button>
+<script type="text/javascript">
+		gbbtn.onclick = function(){
+			this.style.display = Wztext.style.display = 'none';
+		};
+
+		document.onclick = function(e){
+			var ev = e || event;
+			var iTarget = ev.srcElement || ev.target;
+
+			if(iTarget.nodeName == 'LI'){
+
+				gbbtn.style.display = Wztext.style.display = 'block';
+
+
+				ajax({
+					'url':'http://localhost:2140',
+					'type':'get',
+					'data':{
+						titName:iTarget.innerHTML
+					},
+					success:function(data){
+						//console.log(data)
+						Wztext.innerHTML = data;
+					}
+				})
+			}
+		}
+
+
+		ajax({
+			'url':'http://localhost:2139',
+			'type':'get',
+			'data':{
+				'titName':titName.value
+			},
+			success:function(data){
+				//console.log(data);
+				if(data!=''){
+					allArr = JSON.parse(data);
+					for(var i = 0;i < allArr.length;i++){
+						var oLi = document.createElement('li');
+						oLi.innerHTML = allArr[i];
+
+						ul.appendChild(oLi);
+					}
+
+
+
+				}
+			}
+		})
+
+
+	btn.onclick = function(){
+
+		var allLi = ul.children;
+		for(var i = 0;i < allLi.length;i++){
+			if(titName.value == allLi[i].innerHTML){
+				alert('已存在')
+				return ;
+			}
+		}
+
+		ajax({
+			'url':'http://localhost:2138',
+			'type':'get',
+			'data':{
+				'titName':titName.value,
+				'inner':txt.value
+
+			},
+			success:function(data){
+				console.log(data);
+			}
+		})
+		var oLi = document.createElement('li');
+		oLi.innerHTML = titName.value;
+
+		ul.appendChild(oLi);
+	};
+
+
+function ajax(option){
+
+	if(window.XMLHttpRequest){
+		var ajax = new XMLHttpRequest();
+	}
+	else{
+		var ajax = new ActiveXObject("Microsoft.XMLHTTP");
+	};
+	if(option.type == 'get'){
+		ajax.open(option.type,option.url+'?'+JsonToString(option.data),true);
+		ajax.send();
+	}
+	else if(option.type='post'){
+		ajax.open(option.type,option.url,true);
+		ajax.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+		ajax.send(JsonToString(option.data));
+	}
+	
+	
+	ajax.onreadystatechange=function(){
+		//console.log(ajax.readyState)
+		if(ajax.readyState == 4){
+			if(ajax.status>=200&&ajax.status<300||ajax.status==304){
+				option.success(ajax.responseText)
+				//console.log()
+			}
+			else{
+				option.error && option.error();
+			//	console.log('服务器错误-')
+			}
+			//console.log(ajax.status)
+			//console.log(ajax.responseText)
+		}
+	}
+
+
+	function JsonToString(json){
+		var arr = [];
+		for(var i in json){
+			arr.push(i+'='+json[i])
+		};
+		return arr.join('&');
+	}
+}
+
+</script>
+</body>
+</html>
